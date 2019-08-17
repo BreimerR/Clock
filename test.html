@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<canvas id="can" width="300" height="300"></canvas>
+<script>
+    const RAD = 57.2958;
+    let r = 60;
+    const PI = Math.PI, PI2 = PI * 2;
+    let ang = PI2 / 60;
+
+    class Strings extends String {
+        static toTitleCase(string) {
+
+        }
+    }
+
+    class Maths {
+        static convert(deg) {
+            return deg * PI / 180;
+        }
+
+        static sqr(a) {
+            return a * a;
+        }
+
+        static sin(d) {
+            return (d > PI * 2) ? Math.sin(convert(d)) : Math.sin(d);
+        }
+
+        static tan(d) {
+            return (d > PI * 2) ? Math.tan(convert(d)) : Math.tan(d);
+        }
+
+
+        static cos(d) {
+            return (d > PI * 2) ? Math.cos(convert(d)) : Math.cos(d);
+        }
+
+
+    }
+
+    function convert(deg) {
+        return deg * PI / 180;
+    }
+
+    function sqr(a) {
+        return a * a;
+    }
+
+    function sin(d) {
+        return (d > PI * 2) ? Math.sin(convert(d)) : Math.sin(d);
+    }
+
+    function tan(d) {
+        return (d > PI * 2) ? Math.tan(convert(d)) : Math.tan(d);
+    }
+
+    function cos(d) {
+        return (d > PI * 2) ? Math.cos(convert(d)) : Math.cos(d);
+    }
+
+    class Iterator {
+
+        static iterate(object, func, start, increment, stop) {
+            this.start = start || 0;
+            if ('function' == typeof  func) {
+                if (object.constructor.name == 'Array') {
+                    this.increment = increment || 1;
+                    this.stop = stop || object.length;
+                    return this.array(object, func);
+                } else if (typeof object == 'object') {
+                    return this.object(object, func)
+                }
+            }
+        }
+
+        //noinspection JSMethodCanBeStatic
+        object(items, func) {
+            let c = 0;
+            for (let key in items) {
+                //noinspection JSUnfilteredForInLoop
+                func(items[key], key);
+                ++c;
+            }
+        }
+
+        array(array, func) {
+            //noinspection StatementWithEmptyBodyJS
+            for (let i = this.start; i < this.stop;
+                 func(array[i], i,), i += this.increment) ;
+        }
+
+        static length() {
+
+        }
+
+    }
+
+    class Matrix {
+        static multiply(a, b) {
+
+        }
+    }
+
+    class Graphics {
+        constructor() {
+            this.radial = {};
+        }
+
+        setGrad(grad) {
+            !grad || Iterator.iterate(grad, (v, i) => {
+                this.radial.addColorStop(i, v)
+            });
+        }
+
+        getGrad(type) {
+            return this['get' + Strings.toTitleCase + 'Grad'];
+        }
+
+        getRadialGrad() {
+            return this.radialGrad;
+        }
+
+        getLinearGrad() {
+            return this.linearGrad();
+        }
+    }
+
+    function isDefined(item) {
+        return item !== undefined || typeof item !== 'undefined';
+    }
+
+    class Shape {
+        constructor(x, y) {
+            this.x = x || 0;
+            this.y = y || 0;
+            this.v = [];
+            this.width = .2;
+            this.close = true;
+            this.stroke = false;
+            this.lineJoin = 'round';
+            this.strokeStyle = 'black';
+        }
+
+        rotate(deg, center, axis = 'x', space = '2D') {
+            return this['rotate' + space](deg, center, axis);
+        }
+
+        rotate2D(deg, center, axis = 'x') {
+
+        }
+
+        rotate3D(deg, center, axis = 'y') {
+
+        }
+
+        draw() {
+
+        }
+    }
+
+    class Circle extends Shape {
+        constructor(r, sections, start, stop, x, y) {
+            super(x, y);
+            this.r = r;
+            stop = stop || PI2;
+            //noinspection StatementWithEmptyBodyJS
+            for (let ang = start || 0, c = 0;
+                 ang < stop;
+                 this.v[c] = [cos(ang) * this.r, sin(ang) * this.r],
+                     c++, ang += stop / (sections || 30)) ;
+        }
+
+    }
+
+    class Rect extends Graphics {
+        constructor(height, width) {
+            super();
+        }
+    }
+
+    function multi(a, b) {
+        let res = [];
+
+        a.forEach((v, i) => {
+            res[i] = [
+                v[0] * b[0][0] + v[1] * b[0][1],
+                v[0] * b[1][0] + v[1] * b[1][1],
+            ]
+        });
+        return res;
+    }
+
+    function addM(a, b) {
+        let res = [];
+        // noinspection StatementWithEmptyBodyJS
+        a.forEach((v, i) => {
+            res[i] = [v[0] + b[0], v[1] + b[1]]
+        });
+        return res;
+    }
+
+    function setGrad(grad) {
+        if (grad) {
+            for (let i in grad) {
+                //noinspection JSUnfilteredForInLoop
+                this.radial.addColorStop(i, grad[i])
+            }
+        }
+        return this.radial;
+    }
+
+    class LinearGrad {
+        constructor(pos, ctx) {
+            pos = pos || {x: 0, y: 0, x1: 0, y1: 100};
+            this.radial = ctx.createLinearGradient(pos.x, pos.y, pos.x1, pos.y1);
+            this.getGrad = setGrad;
+        }
+    }
+
+    class RadialGrad {
+        constructor(pos, ctx) {
+            pos = pos || {
+                x: 0,
+                y: 0,
+                r: 50,
+                x1: 0,
+                y1: 0,
+                r1: 20
+            };
+            // Enable for second vertexes
+            this.radial = ctx.createRadialGradient(pos.x, pos.y, pos.r, pos.x1, pos.y1, pos.r1);
+            this.getGrad = setGrad;
+        }
+    }
+
+    class Text {
+        constructor(string, x, y) {
+            this.fontSize = 18;
+            this.fontType = 'Arial';
+            this.fontStyle = 'bold';
+            this.draw = ctx => {
+                ctx.beginPath();
+                ctx.font = this.fontSize + 'px ' + this.fontType;
+                ctx.fontStyle = this.fontStyle;
+                ctx.fillStyle = this.color;
+                ctx.fillText(string, x - (this.fontSize * string.length) / 4, y + this.fontSize / 4);
+                ctx.closePath();
+                ctx.stroke();
+            }
+        }
+    }
+
+    /// Enable for theme selection
+
+    (function (can, doc, date, colors, grads, log) {
+        let ctx = can.getContext('2d');
+        let w = can.width, h = can.height;
+        let w2 = can.width / 2, h2 = can.height / 2;
+        ctx.translate(w2, h2);
+
+        function add(e) {
+            e.draw(ctx);
+        }
+
+
+        function extend(a, b) {
+            b.forEach((v) => {
+                a.push(v)
+            })
+        }
+
+        function clear() {
+            ctx.clearRect(-w2, -h2, w, h)
+        }
+
+        function rotate2D(theta) {
+            clear();
+            return multi(this.v, [
+                [cos(theta), -sin(theta)],
+                [sin(theta), cos(theta)]
+            ]);
+        }
+
+        function translate(x, y) {
+            clear();
+            return addM(this.v, [x, y]);
+        }
+
+        // Group common attributes
+
+        function draw(ctx) {
+            if (this.v !== undefined && this.v.length > 0) {
+                ctx.moveTo(this.v[0][0], this.v[0][1]);
+                ctx.beginPath();
+                this.v.forEach((v) => {
+                    ctx.lineTo(v[0], v[1])
+                });
+                ctx.fillStyle = (this.fillStyle !== undefined) ? this.fillStyle : 'black';
+            }
+            if (this.lineJoin) ctx.strokeLinejoin = this.lineJoin;
+            if (this.strokeStyle) ctx.strokeStyle = this.strokeStyle;
+            if (this.width) ctx.lineWidth = this.width;
+            if (this.fill) ctx.fill();
+            if (this.close || this instanceof Rect) ctx.closePath();
+            if (this.stroke) ctx.stroke();
+
+        }
+
+
+        class Circle {
+            constructor(r, sep, start, stop, x, y) {
+                this.r = r;
+                stop = stop || PI2;
+                this.x = x || 0;
+                this.y = y || 0;
+                this.v = [];
+                this.width = .2;
+                this.close = true;
+                this.stroke = false;
+                this.lineJoin = 'round';
+                this.strokeStyle = 'black';
+                // deal with positioning
+                //noinspection StatementWithEmptyBodyJS
+                for (let ang = start || 0, c = 0;
+                     ang < stop;
+                     this.v[c] = [cos(ang) * this.r, sin(ang) * this.r],
+                         c++, ang += stop / (sep || 30)) ;
+                this.draw = draw;
+                this.rotate = rotate2D;
+            }
+        }
+
+        class Rect {
+            constructor(h, w, x, y) {
+                this.x = x;
+                this.y = y;
+                this.h = h;
+                this.w = w;
+                this.width = .2;
+                this.stroke = true;
+                this.close = false;
+                this.strokeStyle = 'black';
+                this.v = [
+                    [this.x - this.w / 2, this.y + this.h / 2],
+                    [this.x + this.w / 2, this.y + this.h / 2],
+                    [this.x + this.w / 2, this.y - this.h / 2],
+                    [this.x - this.w / 2, this.y - this.h / 2]
+                ];
+                this.draw = draw;
+                this.rotate = rotate2D;
+                this.translate = translate;
+            }
+        }
+
+        class Hand {
+
+            constructor(l, r, r1) {
+                this.l = l;
+                this.r = r;
+                this.r1 = r1;
+                this.fill = false;
+                this.close = true;
+                this.stroke = true;
+                this.width = this.r / 2;
+                this.strokeStyle = 'black';
+                this.v = [];
+                let ang = Math.atan(PI2 / 10);
+                let c1 = new Circle(r, 20, ang, PI2 - ang + 0.04);
+                // Define the hand shape by extending the vertices this.hand;
+                extend(this.v, c1.v);
+                extend(this.v, [[this.l - this.r, -this.r / 2 + 2]]);
+                extend(this.v, [[this.l - this.r + 2, -this.r / 2 - 2]]);
+                extend(this.v, [[this.l - this.r + 20, 0]]);
+                extend(this.v, [[this.l - this.r + 2, this.r / 2 + 2]]);
+                extend(this.v, [[this.l - this.r, this.r / 2 - 2]]);
+                extend(this.v, [[cos(ang) * this.r, sin(ang) * this.r]]);
+                // Draw
+                this.draw = draw;
+                this.rotate = rotate2D;
+            }
+
+        }
+
+        class Indicators {
+
+            constructor(r, l, sep) {
+                this.r = r;
+                this.l = l;
+                this.lineWidth = 1;
+                this.v = [];
+                this.strokeStyle = '#000000';
+                // noinspection StatementWithEmptyBodyJS
+                for (let i = 0, c = 0; i < PI2; this.v[c] = [
+                    [cos(i) * (r - l / 2), sin(i) * (r - l / 2)],
+                    [cos(i) * (r + l / 2), sin(i) * (r + l / 2)]
+                ], i += PI2 / sep, c++) ;
+
+            }
+
+            draw(ctx) {
+                let v = this.v;
+                this.v.forEach((v) => {
+                    ctx.beginPath();
+                    ctx.moveTo(v[0][0], v[0][1]);
+                    ctx.lineTo(v[1][0], v[1][1]);
+                    ctx.lineWidth = this.lineWidth;
+                    ctx.strokeStyle = this.strokeStyle;
+                    ctx.stroke();
+                })
+            }
+        }
+
+        let hand = new Hand(90, 8);
+        let minHand = new Hand(90, 10);
+        let hourHand = new Hand(60, 10);
+        let frame = new Circle(w2 - 10, 60);
+        let innerFrame = new Circle(w2 - 37, 60);
+        let rec = new Rect(10, 10, 20, 20);
+        rec.width = 2;
+
+        let center = new Circle(w2 - 40, 60);
+        let c1 = new Circle(w2 / 2, 60);
+        let c2 = new Circle(w2 / 2.3, 70);
+        let c3 = new Circle(w2 - 20, 60);
+        let c4 = new Circle(6, 20);
+        let timeI = new Indicators(w2 - 45, 6, 60);
+        let hrI = new Indicators(w2 - 50, 20, 4);
+        let hrI2 = new Indicators(w2 - 50, 20, 12);
+        let d = new Text(' Sun/' + date.getDate() + '/' +
+            (parseInt(date.getMonth()) < 10 ? '0' + date.getMonth() : date.getMonth()),
+            -70, 0);
+        let b = new Text('J.B', 0, 38);
+        let b1 = new Text('J.B', -3, 34);
+        let b12 = new Text('12', 0, -w2 + 53);
+
+        function shader() {
+
+            // center plate shader
+            c1.fillStyle = colors.centerPlate;
+
+            // center nut
+            c4.fillStyle = colors.cntr;
+
+            //Hands shader
+            minHand.fillStyle = colors.minHFill;
+            minHand.strokeStyle = colors.hrH;
+            hand.strokeStyle = colors.minH;
+
+
+            // Indicators shader
+            hrI.strokeStyle = colors.hourIndicators;
+            hrI2.strokeStyle = colors.hoursIndicators;
+
+            // Fons shader
+            b.color = colors.tShadow;
+            b1.color = colors.logo;
+            b12.color = colors._12;
+
+            /////////////////////////////
+            // Grads
+            // style frame
+            let grad = new LinearGrad({
+                x: 0, y: 0, x1: 0, y1: 300
+            }, ctx);
+            frame.strokeStyle = grad.getGrad(grads.outerG);
+
+
+            // time indicators layer
+            let ig = new RadialGrad({
+                x: 10, y: 20, r: w2, x1: 0, y1: 0, r1: 60
+            }, ctx);
+            innerFrame.strokeStyle = ig.getGrad(grads.ig);
+
+
+            // depth enhancer shader
+            let cg = new LinearGrad({
+                x: 0, y: -w2, x1: 0, y1: w2
+            }, ctx);
+            c3.strokeStyle = cg.getGrad(grads.cgrad);
+
+            // hollow center shader
+            let cg1 = new RadialGrad({
+                x: 10, y: 10, r: w2 - 43, x1: 2, y1: 2, r1: 50
+            }, ctx);
+            center.fillStyle = cg1.getGrad(grads.cg);
+
+        }
+
+        function style() {
+            let hrs = date.getHours(),
+                secs = date.getSeconds(),
+                min = date.getMinutes();
+
+            // normalize sec hand
+            hand.v = hand.rotate(ang * (secs - 15));
+
+            // Style hour hand
+            minHand.stroke = true;
+            minHand.fill = false;
+
+
+            //normalize minHand
+            minHand.v = minHand.rotate(ang * (min - 15));
+            minHand.v = minHand.rotate(ang / r * secs);
+            // normalize hour hand
+            hourHand.v = hourHand.rotate(PI2 / 12 * ((hrs < 12 ? hrs + 12 : hrs) - 15));
+            hourHand.v = hourHand.rotate(ang * (min * 5) / r);
+
+
+            frame.width = 20;
+            frame.stroke = true;
+
+            innerFrame.width = 30;
+            innerFrame.stroke = true;
+
+
+            center.fill = true;
+
+            // style plates
+            c1.fill = true;
+            c2.stroke = true;
+            c2.width = .8;
+
+
+            c3.stroke = true;
+            c3.width = 6;
+
+            c4.fill = true;
+
+
+            d.fontSize = 10;
+            d.fontStyle = 'bold';
+            d.color = colors.centerCircle;
+
+
+            hrI.lineWidth = 5;
+            hrI2.lineWidth = 4;
+
+            b12.fontSize = '22';
+
+
+            shader();
+            scene();
+        }
+
+        style();
+
+        function scene() {
+            add(frame);
+            add(center);
+            add(innerFrame);
+            add(c1);
+            add(c2);
+
+            add(b);
+            add(b1);
+            add(c3);
+            add(timeI);
+            add(hrI2);
+            add(hrI);
+            add(b12);
+            add(hourHand);
+            add(minHand);
+            add(c4);
+            add(hand);
+            add(rec);
+        }
+
+        function startClock() {
+            let secs = new Date().getSeconds();
+            rec.v = rec.translate(-cos(2) * 9, -sin(2) * 9);
+            hand.v = hand.rotate(ang = PI2 / r);
+            minHand.v = minHand.rotate(ang /= r);
+            hourHand.v = hourHand.rotate(ang / r);
+            console.log(secs);
+            scene()
+        }
+
+
+        // use set interval so as to maintain time count
+        // this is due to the aggregation of the vertices
+        // If we use the request animation time then
+        // once we switch pages the the aggregate
+        // translation will be affected to to the pause in animation
+        // thus time count change
+        // affecting positioning of this.v
+        setInterval(startClock, 1000);
+    })
+    (document.getElementById('can'), document, new Date(),
+        {
+            minH: "#36004f",
+            minHFill: '#ad00ff',
+            hrH: "#36004f",
+            secH: "#7fe0fd",
+            dateS: "#58baff",
+            cntr: "#9000d2",
+            tShadow: '#474747',
+            logo: '#1c0029',
+            centerPlate: '#8900c9',
+            hourIndicators: '#000000',
+            hoursIndicators: '#4d006e',
+            centerCircle: '#1c0029',
+            _12: '#ffffff'
+        },
+        {
+            ig: {
+                0: '#9b00e0',
+                0.85: '#d6b7ff',
+                1: '#ffffff'
+            },
+            cg: {
+                0: '#630093',
+                0.5: '#cb83ff',
+                0.75: '#5a0088',
+                0.85: '#550082',
+                0.9: '#550082',
+                1: '#630093'
+            },
+            cgrad: {
+                0: '#ffffff',
+                0.25: '#630093',
+                0.5: '#8900ff',
+                0.85: '#8900ff',
+                1: '#c8a0e4'
+            },
+            outerG: {
+                0: '#8900ff',
+                0.5: '#ffffff',
+                1: '#ffffff'
+            }
+        },
+        console.log);
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+p.reverse {
+    direction: rtl;
+    unicode-bidi: bidi-override;
+}
